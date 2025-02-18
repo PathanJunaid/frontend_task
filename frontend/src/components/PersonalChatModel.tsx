@@ -3,42 +3,51 @@ import { Modal, Box, Typography, TextField, Button } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useCreateGroupMutation } from "../services/api";
+import { useCreateChatMutation } from "../services/api"; // Replace with your API service
 import { toast } from "react-toastify";
 
-interface GroupFormModalProps {
+// Yup Schema for Validation
+const validation = yup.object({
+  receiverEmail: yup
+    .string()
+    .email("Invalid email format")
+    .required("Receiver email is required"),
+  msg: yup.string().required("Message is required"),
+});
+type ChatFormData = typeof validation.__outputType;
+
+interface ChatFormModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-// 🛠 Yup Schema for Validation
-const validation = yup.object({
-  name: yup.string().required("Group name is required").min(3, "Minimum 3 characters"),
-  description: yup.string().optional(),
-});
-type GroupFormData = typeof validation.__outputType;
-const GroupFormModal: React.FC<GroupFormModalProps> = ({ open, onClose }) => {
+const PersonalChatModel: React.FC<ChatFormModalProps> = ({ open, onClose }) => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<GroupFormData>({
-    defaultValues: { name: "", description: "" }, // Ensure these match GroupFormData
+  } = useForm<ChatFormData>({
+    defaultValues: { receiverEmail: "", msg: "" }, // Updated to match new fields
     resolver: yupResolver(validation),  // Use Yup resolver with the correct schema
   });
 
-  const [createGroup] = useCreateGroupMutation();
-  const onSubmit = async(data : GroupFormData)=>{
+  const [createChat] = useCreateChatMutation(); // Replace with actual mutation hook
+  const onSubmit = async (data: ChatFormData) => {
     try {
-          await createGroup(data).unwrap();
-          toast.success("User logged in successfully!");
-        } catch (error: any) {
-          const validationError = error?.data?.data?.errors?.[0].msg;
-          toast.error(
-            validationError ?? error?.data?.message ?? "Something went wrong!"
-          );
-        }
-  }
+      const formData = {
+        receiverEmail: data.receiverEmail ?? "",
+        msg: data.msg ?? ""
+      };
+      await createChat(formData).unwrap();
+      toast.success("Chat created successfully!");
+    } catch (error: any) {
+      const validationError = error?.data?.data?.errors?.[0].msg;
+      toast.error(
+        validationError ?? error?.data?.message ?? "Something went wrong!"
+      );
+    }
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -55,38 +64,40 @@ const GroupFormModal: React.FC<GroupFormModalProps> = ({ open, onClose }) => {
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Create a New Group
+          Create a New Chat
         </Typography>
 
-        {/* Group Name Field */}
+        {/* Receiver Email Field */}
         <Controller
-          name="name"
+          name="receiverEmail"
           control={control}
           render={({ field }) => (
             <TextField
               {...field}
               fullWidth
-              label="Group Name"
+              label="Receiver Email"
               variant="outlined"
-              error={!!errors.name}
-              helperText={errors.name?.message}
+              error={!!errors.receiverEmail}
+              helperText={errors.receiverEmail?.message}
               sx={{ mb: 2 }}
             />
           )}
         />
 
-        {/* Description Field */}
+        {/* Message Field */}
         <Controller
-          name="description"
+          name="msg"
           control={control}
           render={({ field }) => (
             <TextField
               {...field}
               fullWidth
-              label="Description"
+              label="Message"
               variant="outlined"
               multiline
               rows={3}
+              error={!!errors.msg}
+              helperText={errors.msg?.message}
               sx={{ mb: 2 }}
             />
           )}
@@ -106,4 +117,4 @@ const GroupFormModal: React.FC<GroupFormModalProps> = ({ open, onClose }) => {
   );
 };
 
-export default GroupFormModal;
+export default PersonalChatModel;

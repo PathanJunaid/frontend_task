@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/store";
-import { ApiResponse, Group, User } from "../types";
+import { ApiResponse, ChatMessage, Group, User } from "../types";
 
 const baseUrl = import.meta.env.VITE_API_URL
 
@@ -44,18 +44,31 @@ export const api = createApi({
         return { url: `/users/logout`, method: 'POST', }
       },
     }),
-    getGroups: builder.mutation<Group[], void>({
+    getGroups: builder.mutation<ApiResponse<Group[]>, void>({
       query: () => {
         return { url: `/users/chat/group`, method: 'GET', }
       },
     }),
-    createGroup: builder.mutation<void, {name: string, description: string}>({
+    createGroup: builder.mutation<void, { name: string, description: string }>({
       query: (body) => {
-        return { url: `/users/chat/group`, method: 'POST', body}
+        return { url: `/users/chat/group`, method: 'POST', body }
       },
+    }),
+
+
+    CreateChat: builder.mutation<{}, { receiverEmail: string, msg: string }>({
+      query: (body) => {
+        return { url: `/users/chat`, method: 'POST', body }
+      }
+    }),
+
+    getChats : builder.mutation<ApiResponse<ChatMessage[]>, void>({
+      query : () =>{
+        return { url: `/users/chat/get`, method: 'GET'}
+      }
     })
 
   }),
 });
 
-export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetGroupsMutation, useCreateGroupMutation } = api;
+export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetGroupsMutation, useCreateGroupMutation, useCreateChatMutation, useGetChatsMutation } = api;

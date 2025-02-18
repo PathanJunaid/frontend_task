@@ -63,20 +63,16 @@ export const sendmsg = async (senderEmail: string, recieverEmail: string, msg: s
     });
     return result;
 }
-export const getmsgsofEmail = async (senderEmail: string, recieverEmail: string) => {
+export const getmsgsofEmail = async (senderEmail: string) => {
     try {
         // Fetching messages where the fromEmail is the senderEmail and the toEmail is recieverEmail
         const result = await Client.message.findMany({
             where: {
                 from: {
                     email: senderEmail // Filter by the email of the sender
-                },
-                to: {
-                    email: recieverEmail // Filter by the email of the receiver
                 }
             }
         });
-        console.log("results", result)
         return result; // Return the messages
     } catch (error) {
         console.error('Error fetching messages:');

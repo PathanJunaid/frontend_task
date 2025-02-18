@@ -2,7 +2,7 @@ import { Box, Button } from "@mui/material"
 import { useState } from "react"
 import GroupFormModal from "./GroupFormModel";
 
-const Sidebar = () => {
+const CreateGroup = () => {
   const [groupModel,setgroupModel] = useState(false);
   const onClose = ()=>{
     setgroupModel(!groupModel);
@@ -13,9 +13,8 @@ const Sidebar = () => {
       <Button onClick={()=>onClose()}>
         Create Group
       </Button>
-      
     </Box>
   )
 }
 
-export default Sidebar
+export default CreateGroup;

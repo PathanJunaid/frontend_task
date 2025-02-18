@@ -6,5 +6,5 @@ import chatRoutes from "./chat/chat.routes";
 const router = express.Router();
 
 router.use("/users", [userRoutes,authRoutes]);
-router.use('/users/chat',chatRoutes)
+router.use('/users/chat',chatRoutes);
 export default router;

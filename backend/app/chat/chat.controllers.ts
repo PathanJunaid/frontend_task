@@ -11,8 +11,8 @@ export const sendmsg = asyncHandler(async(req:Request, res:Response)=>{
     res.send(createResponse(result, "message sent successfully"))
 })
 export const getmsgofUser = asyncHandler((async(req:Request,res:Response)=>{
-    const token = req.cookies['access_token']
+    const token = req.cookies['access_token'];
     const admin = await chatServices.getAdmin(token);
-    const result = await chatDb.getmsgsofEmail(admin.email,req.body.recieverEmail);
+    const result = await chatDb.getmsgsofEmail(admin.email);
     res.send(createResponse(result, "message sent successfully"))
 }));

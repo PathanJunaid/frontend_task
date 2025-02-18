@@ -35,3 +35,11 @@ export interface Group {
   };
   members: any[];
 }
+interface ChatMessage {
+  id: string;
+  fromEmail: string;
+  toEmail: string;
+  message: string;
+  Status: string;
+  createdAt: string;  // Alternatively, you can use Date if you want to work with Date objects.
+}
