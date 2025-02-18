@@ -10,7 +10,9 @@ import routes from "./app/routes";
 import cookieParser from 'cookie-parser';
 import { setupSwagger } from './app/common/config/swagger.config';
 import cors from 'cors';
+import dotenv from 'dotenv';
 
+dotenv.config();
 loadConfig();
 
 declare global {

@@ -2,11 +2,12 @@ import { PrismaClient } from "@prisma/client";
 import { IUser } from "../user/user.dto";
 import { v4 as uuid4 } from "uuid";
 import bcrypt from 'bcrypt'
-import passport from "passport";
 import { IGroup } from "../chat/chat.dto";
-import { sendEmail } from "../common/services/email.service";
-import { ErrorFormatter } from "express-validator";
 const Client = new PrismaClient();
+
+interface Member {
+    id: string;
+}
 
 const hashPassword = async (password: string) => {
     const hash = await bcrypt.hash(password, 12);
@@ -49,7 +50,7 @@ export const getUserByEmail = async (email: string) => {
 
 // chat functions 
 export const sendmsg = async (senderEmail: string, recieverEmail: string, msg: string) => {
-    console.log(recieverEmail,senderEmail)
+    console.log(recieverEmail, senderEmail)
     const result = await Client.message.create({
         data: {
             message: msg,
@@ -61,18 +62,23 @@ export const sendmsg = async (senderEmail: string, recieverEmail: string, msg: s
             }
         }
     });
+    console.log(result);
     return result;
 }
 export const getmsgsofEmail = async (senderEmail: string) => {
     try {
         // Fetching messages where the fromEmail is the senderEmail and the toEmail is recieverEmail
+        const newresult = await Client.message.findMany({});
         const result = await Client.message.findMany({
             where: {
-                from: {
-                    email: senderEmail // Filter by the email of the sender
-                }
-            }
+                OR: [
+                  { fromEmail: senderEmail },
+                  { toEmail: senderEmail }
+                ]
+              }
         });
+        // console.log();
+        console.log(newresult)
         return result; // Return the messages
     } catch (error) {
         console.error('Error fetching messages:');
@@ -125,7 +131,7 @@ export const checkmember = async (groupId: string, memberId: string) => {
         }
 
         // Check if the user exists in the group members
-        const isMember = group.members.some(member => member.id === memberId);
+        const isMember = group.members.some((member: Member) => member.id === memberId);
 
         if (isMember) {
             return true
@@ -201,7 +207,7 @@ export const addsingleusertoGroup = async (groupId: string, userId: string) => {
     const user = await Client.user.findUnique({
         where: { id: userId },
     });
-    console.log(groupId,userId);
+    console.log(groupId, userId);
     if (!user) {
         console.error("User not found");
         return;

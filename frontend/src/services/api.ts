@@ -56,7 +56,7 @@ export const api = createApi({
     }),
 
 
-    CreateChat: builder.mutation<{}, { receiverEmail: string, msg: string }>({
+    CreateChat: builder.mutation<{}, { recieverEmail: string, msg: string }>({
       query: (body) => {
         return { url: `/users/chat`, method: 'POST', body }
       }

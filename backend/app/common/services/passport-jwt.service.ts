@@ -14,6 +14,7 @@ const isValidPassword = async function (value: string, password: string) {
 };
 
 export const initPassport = (): void => {
+  console.log(process.env.JWT_SECRET)
   passport.use(
     new Strategy(
       {

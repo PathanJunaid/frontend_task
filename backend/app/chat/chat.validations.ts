@@ -5,7 +5,7 @@ export const createGroup = [
     body('description').notEmpty().withMessage('description is required').isString().withMessage('description must be a string'),
 ];
 export const sendmsg = [
-    body('recieverEmail').notEmpty().withMessage('email is required').isString().withMessage('name must be a string'),
+    body('recieverEmail').notEmpty().withMessage('reciever email is required').isString().withMessage('Email must be a string'),
     body('msg').notEmpty().withMessage('msg is required').isString().withMessage('msg must be a string'),
 ]
 export const getmsgs = [

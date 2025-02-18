@@ -8,7 +8,7 @@ import { catchError } from '../common/middleware/cath-error.middleware';
 const chatRoutes = express.Router();
 chatRoutes.use('/group',groupRoutes)
 chatRoutes.use((req, res, next) => {
-    console.log('Request received at /api/users/chat', req.method, req.path);
+    console.log('Request received at /api/users/chat', req.method, req.body);
     next();
   });
 chatRoutes

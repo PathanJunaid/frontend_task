@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 
 // Yup Schema for Validation
 const validation = yup.object({
-  receiverEmail: yup
+  recieverEmail: yup
     .string()
     .email("Invalid email format")
     .required("Receiver email is required"),
@@ -27,7 +27,7 @@ const PersonalChatModel: React.FC<ChatFormModalProps> = ({ open, onClose }) => {
     handleSubmit,
     formState: { errors },
   } = useForm<ChatFormData>({
-    defaultValues: { receiverEmail: "", msg: "" }, // Updated to match new fields
+    defaultValues: { recieverEmail: "", msg: "" }, // Updated to match new fields
     resolver: yupResolver(validation),  // Use Yup resolver with the correct schema
   });
 
@@ -35,11 +35,12 @@ const PersonalChatModel: React.FC<ChatFormModalProps> = ({ open, onClose }) => {
   const onSubmit = async (data: ChatFormData) => {
     try {
       const formData = {
-        receiverEmail: data.receiverEmail ?? "",
+        recieverEmail: data.recieverEmail ?? "",
         msg: data.msg ?? ""
       };
       await createChat(formData).unwrap();
       toast.success("Chat created successfully!");
+      onClose();
     } catch (error: any) {
       const validationError = error?.data?.data?.errors?.[0].msg;
       toast.error(
@@ -69,7 +70,7 @@ const PersonalChatModel: React.FC<ChatFormModalProps> = ({ open, onClose }) => {
 
         {/* Receiver Email Field */}
         <Controller
-          name="receiverEmail"
+          name="recieverEmail"
           control={control}
           render={({ field }) => (
             <TextField
@@ -77,8 +78,8 @@ const PersonalChatModel: React.FC<ChatFormModalProps> = ({ open, onClose }) => {
               fullWidth
               label="Receiver Email"
               variant="outlined"
-              error={!!errors.receiverEmail}
-              helperText={errors.receiverEmail?.message}
+              error={!!errors.recieverEmail}
+              helperText={errors.recieverEmail?.message}
               sx={{ mb: 2 }}
             />
           )}
