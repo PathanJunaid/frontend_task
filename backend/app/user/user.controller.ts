@@ -1,14 +1,14 @@
 
-import { type Request, type Response } from 'express';
-import asyncHandler from "express-async-handler";
+// import * as userService from "./user.service";
+import * as userService from "../prisma/prisma";
 import { createResponse } from "../common/helper/response.hepler";
-import { createUserTokens } from '../common/services/passport-jwt.service';
-import * as userService from "./user.service";
+import asyncHandler from "express-async-handler";
+import { type Request, type Response } from 'express';
 
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
-    const result = await userService.createUser(req.body);
-    const { password, ...user } = result;
-    res.send(createResponse(user, "User created sucssefully"))
+    const {confirmPassword, ...data} = req.body;
+    const result = await userService.createUser(data);
+    res.send(createResponse(result, "User created sucssefully"))
 });
 
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
@@ -16,10 +16,10 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
     res.send(createResponse(result, "User updated sucssefully"))
 });
 
-export const editUser = asyncHandler(async (req: Request, res: Response) => {
-    const result = await userService.editUser(req.params.id, req.body);
-    res.send(createResponse(result, "User updated sucssefully"))
-});
+// export const editUser = asyncHandler(async (req: Request, res: Response) => {
+//     const result = await userService.editUser(req.params.id, req.body);
+//     res.send(createResponse(result, "User updated sucssefully"))
+// });
 
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
     const result = await userService.deleteUser(req.params.id);
@@ -38,19 +38,3 @@ export const getAllUser = asyncHandler(async (req: Request, res: Response) => {
     res.send(createResponse(result))
 });
 
-export const login = asyncHandler(async (req: Request, res: Response) => {
-    const tokens = createUserTokens(req.user!)
-    res.send(createResponse(tokens))
-});
-
-
-export const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
-    const user = await userService.getUserById(req.user?._id!)
-    res.send(createResponse(user))
-});
-
-export const logout = asyncHandler(async (req: Request, res: Response) => {
-    const user = req.user;
-    // To do: Remove session
-    res.send(createResponse({}))
-});

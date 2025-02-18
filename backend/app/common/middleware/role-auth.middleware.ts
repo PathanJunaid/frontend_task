@@ -1,12 +1,12 @@
+import jwt from "jsonwebtoken";
 import { type NextFunction, type Request, type Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import createHttpError from "http-errors";
-import jwt from "jsonwebtoken";
 import process from "process";
 import { type IUser } from "../../user/user.dto";
 
 export const roleAuth = (
-  roles: IUser['role'][],
+  roles: IUser['role'],
   publicRoutes: string[] = []
 ) =>
   expressAsyncHandler(
@@ -23,9 +23,12 @@ export const roleAuth = (
         });
       }
 
-      const decodedUser = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
+      const decodedUser = jwt.verify(token, process.env.JWT_SECRET!);
       req.user = decodedUser as IUser;
       const user = req.user as IUser;
+      if (user.role == null || ['ADMIN', 'USER'].includes(user.role)) {
+        throw createHttpError(401, { message: "Invalid user role" });
+      }
       if (!roles.includes(user.role)) {
         const type =
           user.role.slice(0, 1) + user.role.slice(1).toLocaleLowerCase();

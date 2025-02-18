@@ -18,3 +18,20 @@ interface ApiResponse<T> {
   message: string;
   sucess: boolean
 }
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  private: boolean;
+  adminId: string;
+  createdAt: string;
+  updatedAt: string;
+  admin: {
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+    active: boolean;
+  };
+  members: any[];
+}

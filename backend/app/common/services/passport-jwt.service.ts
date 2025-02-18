@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
-import { type Request } from "express";
-import createError from "http-errors";
 import jwt from "jsonwebtoken";
 import passport from "passport";
-import { ExtractJwt, Strategy } from "passport-jwt";
+import { Strategy, ExtractJwt } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
+import createError from "http-errors";
+import * as userService from "../../prisma/prisma";
+import { type Request } from "express";
 import { type IUser } from "../../user/user.dto";
-import * as userService from "../../user/user.service";
 
 const isValidPassword = async function (value: string, password: string) {
   const compare = await bcrypt.compare(value, password);
@@ -17,7 +17,7 @@ export const initPassport = (): void => {
   passport.use(
     new Strategy(
       {
-        secretOrKey: process.env.JWT_ACCESS_SECRET,
+        secretOrKey: process.env.JWT_SECRET,
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       },
       async (token: { user: Request["user"] }, done) => {
@@ -40,9 +40,9 @@ export const initPassport = (): void => {
       },
       async (email, password, done) => {
         try {
-          const user = await userService.getUserByEmail(email, true);
+          const user = await userService.getUserByEmail(email);
           if (user == null) {
-            done(createError(401, "Invalid email or password"), false);
+            done(createError(401, "User not found!"), false);
             return;
           }
 
@@ -51,13 +51,26 @@ export const initPassport = (): void => {
             return;
           }
 
+          // if (user.blocked) {
+          //   done(createError(401, "User is blocked, Contact to admin"), false);
+          //   return;
+          // }
+
           const validate = await isValidPassword(password, user.password);
           if (!validate) {
             done(createError(401, "Invalid email or password"), false);
             return;
           }
           const { password: _p, ...result } = user;
-          done(null, result, { message: "Logged in Successfully" });
+
+          // Convert Date objects to string
+          const formattedResult = {
+            ...result,
+            name: result.name || "",
+          };
+
+          done(null, formattedResult, { message: "Logged in Successfully" });
+
         } catch (error: any) {
           done(createError(500, error.message));
         }
@@ -67,14 +80,14 @@ export const initPassport = (): void => {
 };
 
 export const createUserTokens = (user: Omit<IUser, "password">) => {
-  const accessTokenSecret = process.env.JWT_ACCESS_SECRET ?? "";
-  const refreshTokenSecret = process.env.JWT_REFRESH_SECRET ?? "";
-  const token = jwt.sign(user, accessTokenSecret);
-  const refreshToken = jwt.sign(user, refreshTokenSecret);
-  return { accessToken: token, refreshToken };
+  const jwtSecret = process.env.JWT_SECRET ?? "";
+  const token = jwt.sign(user, jwtSecret);
+  const refreshToken = jwt.sign(user.id,jwtSecret);
+  return { accessToken: token, refreshToken: refreshToken };
 };
 
 export const decodeToken = (token: string) => {
+  // const jwtSecret = process.env.JWT_SECRET ?? "";
   const decode = jwt.decode(token);
   return decode as IUser;
 };

@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"  // Or another database provider (e.g., mysql, sqlite)
+  url      = env("DATABASE_URL")  // Make sure you have this variable set in your .env file
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String?
+  email     String     @unique
+  password  String
+  active    Boolean
+  role      Role       @default(USER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations for messages
+  sentMessages  message[] @relation("MessageFrom")
+  receivedMessages message[] @relation("MessageTo")
+
+  // Relation to Group (admin of the group)
+  adminGroups Group[] @relation("AdminGroup")
+  // Many-to-many relation with Group (groups the user belongs to)
+  groups       Group[]  @relation("GroupMembers")
+  sentMessage groupMessage[] @relation("MessageFrom")
+}
+
+
+model Group {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  adminId     String
+  admin       User       @relation("AdminGroup", fields: [adminId], references: [id])
+  private     Boolean     @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  // Define the opposite relation for `groupMessage`
+  groupMessages groupMessage[] @relation("MessageTo")
+
+  // Many-to-many relation with User (members of the group)
+  members     User[]     @relation("GroupMembers")
+}
+
+model message {
+  id        String   @id @default(uuid())
+  fromEmail    String
+  toEmail      String?
+  from      User     @relation("MessageFrom", fields: [fromEmail], references: [email])
+  to        User?    @relation("MessageTo", fields: [toEmail], references: [email])
+  message   String
+  Status    msgStatus @default(PENDING)
+  createdAt DateTime  @default(now())
+}
+
+model groupMessage {
+  id        String   @id @default(uuid())
+  fromId    String
+  toId      String
+  from      User     @relation("MessageFrom", fields: [fromId], references: [id])
+  to        Group?   @relation("MessageTo", fields: [toId], references: [id])
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model groupInvite {
+  id        String   @id @default(uuid()) 
+  userId    String
+  groupId   String
+  invitedAt DateTime @default(now())
+
+  @@unique([userId, groupId])
+}
+
+enum msgStatus {
+  PENDING
+  SENT
+  READ
+}
+
+enum Role {
+  USER
+  ADMIN
+}

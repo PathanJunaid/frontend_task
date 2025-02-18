@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/store";
+import { ApiResponse, Group, User } from "../types";
 
 const baseUrl = import.meta.env.VITE_API_URL
 
@@ -7,6 +8,7 @@ export const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
     baseUrl: baseUrl,
+    credentials: "include",
     prepareHeaders: (headers, { getState }) => {
       // Access the state from Redux
       const token = (getState() as RootState).auth.accessToken;
@@ -29,7 +31,7 @@ export const api = createApi({
     }),
     register: builder.mutation<ApiResponse<User>, Omit<User, '_id' | 'active' | 'role'> & { confirmPassword: string }>({
       query: (body) => {
-        return { url: `/users/register`, method: 'POST', body }
+        return { url: `/users`, method: 'POST', body }
       },
     }),
     updateUser: builder.mutation<ApiResponse<User>, User>({
@@ -42,7 +44,18 @@ export const api = createApi({
         return { url: `/users/logout`, method: 'POST', }
       },
     }),
+    getGroups: builder.mutation<Group[], void>({
+      query: () => {
+        return { url: `/users/chat/group`, method: 'GET', }
+      },
+    }),
+    createGroup: builder.mutation<void, {name: string, description: string}>({
+      query: (body) => {
+        return { url: `/users/chat/group`, method: 'POST', body}
+      },
+    })
+
   }),
 });
 
-export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation } = api;
+export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetGroupsMutation, useCreateGroupMutation } = api;
