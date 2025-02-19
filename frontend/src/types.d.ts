@@ -4,9 +4,13 @@ declare module "*.svg" {
   const src: string;
   export default src;
 }
-
-interface User {
-  _id: string;
+interface Base {
+  createdAt: Date,
+  updatedAt: Date,
+  iat: number
+}
+interface User extends Base{
+  id: string;
   name: string;
   email: string;
   active: boolean;
@@ -42,4 +46,11 @@ interface ChatMessage {
   message: string;
   Status: string;
   createdAt: string;  // Alternatively, you can use Date if you want to work with Date objects.
+}
+export interface GroupMessageInterface {
+  id: string;
+  fromId: string;
+  toId: string;
+  message: string;
+  createdAt: string; // ISO date string
 }

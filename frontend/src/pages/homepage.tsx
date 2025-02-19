@@ -4,43 +4,62 @@ import { toast } from "react-toastify";
 
 
 // import Chats from "../components/Chats";
-import { useGetChatsMutation, useGetGroupsMutation } from "../services/api";
-import { ChatMessage, Group } from "../types";
+import { useGetallUsersMutation, useGetChatsMutation, useGetGroupsMutation, useMeMutation } from "../services/api";
+import { ChatMessage, Group, User } from "../types";
 import Groups from "../components/Groups";
 import CreateGroup from "../components/CreateGroup";
 import CreateChat from "../components/CreatePersonalChats";
 import ChatUsers from "../components/ChatUsers";
 import ChatBox from "../components/ChatBox";
+import Loader from "../components/Loader";
+import GroupChatBox from "../components/GroupChatBox";
 
 const Home = () => {
-  const [selected, setSelected] = useState<string>(null); // Track the selected Typography
+  const [selected, setSelected] = useState<{ id: string, isGroup: Boolean, name?: string }>({
+    id: "",
+    isGroup: false,
+  }); // Track the selected Typography
   const [getGroups, { isError: groupError }] = useGetGroupsMutation();
-  const [getChats, { data, error, isLoading, isError }] = useGetChatsMutation();
+  const [getChats, { isError }] = useGetChatsMutation();
+  const [getUser, { isLoading }] = useMeMutation();
+  const [getallUsers] = useGetallUsersMutation();
   const [groupsData, setGroupsData] = useState<Group[]>([]);
   const [chatData, setChatData] = useState<ChatMessage[]>([]);
   const [Emails, setEmails] = useState<string[]>([]);
+  const [user, setUser] = useState<User | null>(null)
+  const [allUsers, setallUsers] = useState<User[]>([]);
+
   useEffect(() => {
     const fetchGroupsandchats = async () => {
       try {
         const res = await getGroups().unwrap();
         const res1 = await getChats().unwrap();
+        const userResponse = await getUser().unwrap();
+        const allUserResponse = await getallUsers().unwrap();
+
+        setallUsers(allUserResponse.data);
         if (!isError && !groupError) {
           setChatData(res1.data);
           setGroupsData(res.data);
-          const adminEmail = "Sam@gmail.com";
+          setUser(userResponse.data);
+        }
+        else {
+          console.error("Unexpected response format:", res);
+          toast.error("Unexpected response format from server!");
+        }
+        if (!isError && !isLoading) {
+
           setEmails([
             ...new Set(
               res1.data
                 .slice() // Creates a shallow copy to avoid modifying the original array
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                 .flatMap((message) => [message.fromEmail, message.toEmail]) // Get both sender and receiver emails
-                .filter((email) => email && email !== adminEmail) // Exclude admin email & remove null/undefined
+                .filter((email) => email && email !== userResponse?.data.email) // Exclude admin email & remove null/undefined
             )
           ]);
-        }
-        else {
-          console.error("Unexpected response format:", res);
-          toast.error("Unexpected response format from server!");
+        } else {
+          console.log('user no')
         }
       } catch (error: any) {
         const validationError = error?.data?.data?.errors?.[0]?.msg;
@@ -48,28 +67,48 @@ const Home = () => {
         toast.error(validationError ?? error?.data?.message ?? "Something went wrong!");
       }
     };
-
     fetchGroupsandchats();
   }, []);
   const handleClick = (index: string) => {
-    setSelected(index); // Set the selected index when a Typography is clicked
+    if (index.includes("@")) {
+      setSelected({
+        id: index,
+        isGroup: false
+      })
+    } else {
+      const data = groupsData.find((group) => {
+        return group.id === index
+      })
+      setSelected({
+        id: index,
+        name: data.name,
+        isGroup: true
+      })
+    }
   };
   return (
     <>
-      <Grid container spacing={4} sx={{margin: '0px', padding: "0px 10px", width: '100%', maxWidth: '100%', justifyContent: 'space-evenly', height: '85vh' }}>
+      <Grid container spacing={4} sx={{ margin: '0px', padding: "0px 10px", width: '100%', maxWidth: '100%', justifyContent: 'space-evenly', height: '85vh' }}>
         <Grid item xs={2}>
-          <CreateChat />
-          <ChatUsers handleClick={handleClick} Data={Emails} selected={selected} />
-          <Divider sx={{height: '1px',bgcolor: "black"}}></Divider>
+          {isLoading ? <Loader /> :
+            <>
+              <CreateChat />
+              <ChatUsers handleClick={handleClick} Data={Emails} selected={selected} />
+            </>
+
+          }
+          <Divider sx={{ height: '1px', bgcolor: "black" }}></Divider>
           <CreateGroup />
           <Groups handleClick={handleClick} groupsData={groupsData} selected={selected} />
         </Grid>
         <Grid item xs={9}>
-          {/* {selected? <Chats GroupId = {selected}/> : <Typography component={"h6"} sx={{display:'flex', alignItems: 'center', justifyContent: 'center'}}>No group selected</Typography>} */}
-          {
-            selected?
-            <ChatBox chatData={chatData} currentUser={selected} /> : 'No chats selected'
-          }
+          {selected.id === "" ? (
+            "No Group or User Selected"
+          ) : !selected.isGroup ? (
+            <ChatBox chatData={chatData} currentUser={selected} setChatData={setChatData} />
+          ) : (
+            <GroupChatBox currentGroup={selected} currentUser={{ email: user.email, id: user.id }} allUsers={allUsers} />
+          )}
         </Grid>
       </Grid>
     </>

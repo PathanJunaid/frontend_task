@@ -77,8 +77,6 @@ export const getmsgsofEmail = async (senderEmail: string) => {
                 ]
               }
         });
-        // console.log();
-        console.log(newresult)
         return result; // Return the messages
     } catch (error) {
         console.error('Error fetching messages:');
@@ -89,13 +87,28 @@ export const getmsgsofEmail = async (senderEmail: string) => {
 // group functions 
 
 export const createGroup = async (data: IGroup, adminId: string) => {
-    const result = await Client.group.create({
-        data: {
-            ...data,
-            adminId: adminId
-        }
-    })
-    return result;
+    try {
+        const result = await Client.group.create({
+            data: {
+                name: data.name,
+                description: data.description,
+                adminId: adminId,
+                private: data.private || false,  // Default to false if not provided
+                
+                // Connect members to the group if provided
+                members: data.members && data.members.length > 0 ? {
+                    connect: data.members.map(memberId => ({ id: memberId }))
+                } : undefined
+            },
+            include: {
+                members: true  // Include the members in the response
+            }
+        });
+        return result;
+    } catch (error) {
+        console.error("Error creating group:", error);
+        throw error;
+    }
 }
 export const getGroups = async (adminId: string) => {
     const result = await Client.group.findMany({
@@ -223,6 +236,35 @@ export const addsingleusertoGroup = async (groupId: string, userId: string) => {
         },
     });
     console.log(result)
+    return result;
+}
+
+export const getgroupMsg = async ( id: string ) => {
+    const result = await Client.groupMessage.findMany({
+        where: {
+            toId: id
+        }
+    })
+
+    return result;
+}
+export const getgroupMembers = async ( id: string ) => {
+    console.log(id);
+    const result = await Client.group.findUnique({
+        where: {
+            id: id, // Replace `groupId` with the actual ID variable
+        },
+        select: {
+            members: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
+        },
+    });
+
     return result;
 }
 

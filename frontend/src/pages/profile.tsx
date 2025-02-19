@@ -1,11 +1,24 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import UserProfile from "../components/UserProfile";
-import { useMeQuery } from "../services/api";
-import { useAppSelector } from "../store/store";
+import { useMeMutation } from "../services/api";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const Profile = () => {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const { data, isLoading } = useMeQuery(undefined, { skip: !isAuthenticated });
+  const [getUser,{isLoading, isError}]  = useMeMutation();
+  const [user, setUser] = useState({});
+  useEffect(()=>{
+    const fetchUser = async () => {
+      const res = await getUser().unwrap();
+      if(!isError){
+        setUser(res.data);
+      }else{
+        toast.error('Unable to fetch user data');
+      }
+    }
+    fetchUser();
+  },[])
+
 
   if (isLoading) {
     return (
@@ -21,7 +34,7 @@ const Profile = () => {
     );
   }
 
-  if (!data) {
+  if (!user) {
     return (
       <Box
         width="100vw"
@@ -37,7 +50,7 @@ const Profile = () => {
 
   return (
     <Box>
-      <UserProfile data={data.data} />
+      <UserProfile data={user} />
     </Box>
   );
 };

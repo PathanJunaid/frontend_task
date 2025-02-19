@@ -9,6 +9,7 @@ const router = Router();
 
 router
         .get("/", authverify, userController.getAllUser)
+        .get('/me',authverify, userController.getMe)
         .get("/:id",authverify, userController.getUserById)
         .delete("/:id", userController.deleteUser)
         .post("/", userValidator.createUser, catchError, userController.createUser)

@@ -4,6 +4,7 @@ import * as userService from "../prisma/prisma";
 import { createResponse } from "../common/helper/response.hepler";
 import asyncHandler from "express-async-handler";
 import { type Request, type Response } from 'express';
+import { getAdmin } from "../chat/chat.services";
 
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
     const {confirmPassword, ...data} = req.body;
@@ -37,4 +38,10 @@ export const getAllUser = asyncHandler(async (req: Request, res: Response) => {
     const result = await userService.getAllUser();
     res.send(createResponse(result))
 });
+
+export const getMe = asyncHandler(async(req: Request, res: Response)=>{
+    const token = req.cookies['access_token'];
+    const admin = await getAdmin(token);
+    res.send(createResponse(admin, 'User Data'));
+})
 

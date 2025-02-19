@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store/store";
-import { ApiResponse, ChatMessage, Group, User } from "../types";
+import { ApiResponse, ChatMessage, Group, GroupMessageInterface, User } from "../types";
 
 const baseUrl = import.meta.env.VITE_API_URL
 
@@ -21,8 +21,13 @@ export const api = createApi({
     },
   }),
   endpoints: (builder) => ({
-    me: builder.query<ApiResponse<User>, void>({
+    me: builder.mutation<ApiResponse<User>, void>({
       query: () => `/users/me`,
+    }),
+    getallUsers: builder.mutation<ApiResponse<User[]>, void>({
+      query : ()=>{
+        return {url: '/users', method: 'GET'}
+      }
     }),
     login: builder.mutation<ApiResponse<{ accessToken: string, refreshToken: string }>, { email: string, password: string }>({
       query: (body) => {
@@ -36,7 +41,7 @@ export const api = createApi({
     }),
     updateUser: builder.mutation<ApiResponse<User>, User>({
       query: (body) => {
-        return { url: `/users/${body._id}`, method: 'PUT', body }
+        return { url: `/users/${body.id}`, method: 'PUT', body }
       },
     }),
     logout: builder.mutation<void, void>({
@@ -49,13 +54,11 @@ export const api = createApi({
         return { url: `/users/chat/group`, method: 'GET', }
       },
     }),
-    createGroup: builder.mutation<void, { name: string, description: string }>({
+    createGroup: builder.mutation<void, { name: string, description: string, members: string[] }>({
       query: (body) => {
         return { url: `/users/chat/group`, method: 'POST', body }
       },
     }),
-
-
     CreateChat: builder.mutation<{}, { recieverEmail: string, msg: string }>({
       query: (body) => {
         return { url: `/users/chat`, method: 'POST', body }
@@ -66,9 +69,35 @@ export const api = createApi({
       query : () =>{
         return { url: `/users/chat/get`, method: 'GET'}
       }
+    }),
+    sendMsg : builder.mutation<ApiResponse<ChatMessage>, {msg: string, recieverEmail: string}>({
+      query: (body)=>{
+        return {url : '/users/chat/', method: 'POST', body}
+      }
+    }),
+    getGroupChats : builder.mutation<ApiResponse<GroupMessageInterface[]>, {id: string}>({
+      query : (body) =>{
+        return { url: `/users/chat/group/${body.id}`, method: 'GET'}
+      }
+    }),
+    sendGroupMsg : builder.mutation<ApiResponse<GroupMessageInterface>, {id: string, email: string, msg: string }>({
+      query : (body)=>{
+        return {url : `/users/chat/group/${body.id}`, method: 'POST', body: {email: body.email, msg: body.msg}}
+      }
+    }),
+    getMemebers: builder.mutation<ApiResponse<Group>, {id: string}>({
+      query: (body)=>{
+        return {url: `/users/chat/group/member/${body.id}`, method: 'GET'}
+      }
     })
 
   }),
 });
 
-export const { useMeQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetGroupsMutation, useCreateGroupMutation, useCreateChatMutation, useGetChatsMutation } = api;
+export const { useMeMutation, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useGetGroupsMutation, useCreateGroupMutation, useCreateChatMutation, useGetChatsMutation,
+  useSendMsgMutation,
+  useGetGroupChatsMutation,
+  useSendGroupMsgMutation,
+  useGetallUsersMutation,
+  useGetMemebersMutation
+ } = api;

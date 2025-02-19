@@ -59,6 +59,7 @@ export const authverify= asyncHandler(async (req:Request, res: Response, next: N
       success : false
     })
     return;
+  }else{
+    next();
   }
-  next();
 })
